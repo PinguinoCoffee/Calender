@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1117">
+<title>Calenduy</title>
+
+<style>
+:root {
+    color-scheme: dark;
+    --bg: #080b10;
+    --panel: #0d1117;
+    --border: #263241;
+    --text: #e6edf3;
+    --muted: #8b98a8;
+    --accent: #7c9cff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 25px 16px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, sans-serif;
+}
+
+button, input, textarea {
+    font: inherit;
+}
+
+button {
+    background: #182231;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 13px;
+    cursor: pointer;
+}
+
+button:hover {
+    border-color: var(--accent);
+}
+
+.app {
+    max-width: 1150px;
+    margin: auto;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 27px;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 18px;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 16px;
+}
+
+.monthbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.monthbar h2 {
+    margin: 0;
+    font-size: 21px;
+}
+
+.month-actions {
+    display: flex;
+    gap: 7px;
+}
+
+.weekdays, .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.weekdays div {
+    text-align: center;
+    padding: 10px 2px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.day {
+    min-height: 105px;
+    background: #0a1018;
+    border: 1px solid #202b38;
+    border-radius: 7px;
+    margin: 2px;
+    padding: 7px;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.day:hover {
+    border-color: var(--accent);
+}
+
+.day.outside {
+    opacity: .35;
+}
+
+.day.today {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px #7c9cff44;
+}
+
+.day.selected {
+    background: #17243a;
+}
+
+.day-number {
+    font-weight: 750;
+    font-size: 14px;
+    margin-bottom: 7px;
+}
+
+.today .day-number {
+    color: #a9c0ff;
+}
+
+.event-chip {
+    display: block;
+    width: 100%;
+    border: none;
+    background: #263b5d;
+    color: white;
+    border-radius: 5px;
+    padding: 4px;
+    margin-top: 3px;
+    font-size: 11px;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.event-chip:hover {
+    background: #34517e;
+}
+
+.side-title {
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.selected-date {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 15px;
+}
+
+.primary {
+    background: #3157a5;
+    border-color: #5279cc;
+}
+
+.add-button {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.event {
+    background: #111821;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+.event strong {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.event small {
+    display: block;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+.event button {
+    margin-top: 8px;
+    padding: 5px 9px;
+    font-size: 11px;
+}
+
+.empty {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: #000b;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    z-index: 10;
+}
+
+.modal-backdrop.open {
+    display: flex;
+}
+
+.modal {
+    width: 100%;
+    max-width: 430px;
+    background: #101720;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 20px;
+}
+
+.modal h2 {
+    margin-top: 0;
+}
+
+.field {
+    margin: 13px 0;
+}
+
+.field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+
+.field input, .field textarea {
+    width: 100%;
+    padding: 10px;
+    background: #080e15;
+    color: white;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+}
+
+.field textarea {
+    min-height: 75px;
+    resize: vertical;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.modal-actions .right {
+    display: flex;
+    gap: 8px;
+}
+
+.delete {
+    color: #ff818a;
+}
+
+.footer {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 13px;
+}
+
+@media(max-width: 800px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width: 520px) {
+    body {
+        padding: 12px 7px;
+    }
+
+    .panel {
+        padding: 8px;
+    }
+
+    .day {
+        min-height: 76px;
+        padding: 5px 3px;
+    }
+
+    .weekdays div {
+        font-size: 9px;
+        padding: 7px 0;
+    }
+
+    .day-number {
+        font-size: 12px;
+    }
+
+    .event-chip {
+        font-size: 9px;
+        padding: 3px;
+    }
+
+    h1 {
+        font-size: 21px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+    <div>
+        <h1>Calenduy</h1>
+        <div class="subtitle">
+            Monduy accurate calender
+        </div>
+    </div>
+    <button id="todayBtn">Today</button>
+</header>
+
+<div class="layout">
+
+<section class="panel">
+
+    <div class="monthbar">
+        <h2 id="monthTitle"></h2>
+
+        <div class="month-actions">
+            <button id="prevMonth">←</button>
+            <button id="nextMonth">→</button>
+        </div>
+    </div>
+
+    <div class="weekdays" id="weekdays"></div>
+    <div class="calendar-grid" id="calendar"></div>
+
+    <div class="footer">
+    </div>
+
+</section>
+
+<aside class="panel">
+
+    <div class="side-title">Selected day</div>
+    <div class="selected-date" id="selectedDate"></div>
+
+    <button class="primary add-button" id="addEvent">
+        + Add event
+    </button>
+
+    <div id="eventList"></div>
+
+    <div class="footer">
+        Events are saved locally in your browser.
+    </div>
+
+</aside>
+
+</div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+
+<form class="modal" id="eventForm">
+
+    <h2 id="modalTitle">New event</h2>
+
+    <div class="field">
+        <label>Event title</label>
+        <input id="eventName" maxlength="90" required>
+    </div>
+
+    <div class="field">
+        <label>Date</label>
+        <input id="eventDate" type="date" required>
+    </div>
+
+    <div class="field">
+        <label>Time</label>
+        <input id="eventTime" type="time">
+    </div>
+
+    <div class="field">
+        <label>Notes</label>
+        <textarea id="eventNotes" maxlength="500"></textarea>
+    </div>
+
+    <div class="modal-actions">
+
+        <button type="button" class="delete" id="deleteEvent" hidden>
+            Delete
+        </button>
+
+        <div class="right">
+            <button type="button" id="cancel">Cancel</button>
+            <button type="submit" class="primary">Save</button>
+        </div>
+
+    </div>
+
+</form>
+</div>
+
+<script>
+const weekdayNames = [
+    "Monduy",
+    "Tuesduy",
+    "Wednesduy",
+    "Thursduy",
+    "Friduy",
+    "Saturduy",
+    "Sunduy"
+];
+
+const $ = id => document.getElementById(id);
+
+const today = new Date();
+
+let currentMonth = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1
+);
+
+let selectedDate = formatDate(today);
+let editingId = null;
+
+let events = [];
+
+try {
+    events = JSON.parse(
+        localStorage.getItem("offByOneEvents") || "[]"
+    );
+} catch {
+    events = [];
+}
+
+function formatDate(date) {
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0")
+    ].join("-");
+}
+
+function parseDate(key) {
+    const [year, month, day] = key.split("-").map(Number);
+    return new Date(year, month - 1, day);
+}
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+// Sunday = 0, Monday = 1, etc.
+// Shift the actual weekday back exactly one position.
+function getShiftedWeekday(date) {
+    return (date.getDay() + 5) % 7;
+}
+
+function saveEvents() {
+    localStorage.setItem(
+        "offByOneEvents",
+        JSON.stringify(events)
+    );
+}
+
+function render() {
+    $("monthTitle").textContent =
+        currentMonth.toLocaleDateString(undefined, {
+            month: "long",
+            year: "numeric"
+        });
+
+    $("weekdays").innerHTML = weekdayNames
+        .map(name => `<div>${name}</div>`)
+        .join("");
+
+    const first = new Date(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth(),
+        1
+    );
+
+    // Find the first displayed date.
+    // The offset is based on the SHIFTED weekday.
+    const offset = getShiftedWeekday(first);
+
+    const gridStart = new Date(first);
+    gridStart.setDate(first.getDate() - offset);
+
+    let html = "";
+
+    for (let i = 0; i < 42; i++) {
+
+        const date = new Date(gridStart);
+        date.setDate(gridStart.getDate() + i);
+
+        const key = formatDate(date);
+
+        const isCurrentMonth =
+            date.getMonth() === currentMonth.getMonth();
+
+        const isToday =
+            key === formatDate(today);
+
+        const isSelected =
+            key === selectedDate;
+
+        const dayEvents = events
+            .filter(event => event.date === key)
+            .sort((a, b) =>
+                (a.time || "").localeCompare(b.time || "")
+            );
+
+        html += `
+            <div
+                class="day
+                    ${isCurrentMonth ? "" : "outside"}
+                    ${isToday ? "today" : ""}
+                    ${isSelected ? "selected" : ""}"
+                data-date="${key}"
+            >
+
+                <div class="day-number">
+                    ${date.getDate()}
+                </div>
+
+                ${dayEvents.slice(0, 3).map(event => `
+                    <button
+                        class="event-chip"
+                        data-event="${escapeHTML(event.id)}"
+                        type="button"
+                    >
+                        ${event.time
+                            ? escapeHTML(event.time) + " · "
+                            : ""}
+                        ${escapeHTML(event.title)}
+                    </button>
+                `).join("")}
+
+                ${dayEvents.length > 3
+                    ? `<div class="footer">+${dayEvents.length - 3} more</div>`
+                    : ""}
+
+            </div>
+        `;
+    }
+
+    $("calendar").innerHTML = html;
+
+    $("calendar").querySelectorAll(".day").forEach(day => {
+        day.addEventListener("click", event => {
+
+            const eventButton = event.target.closest("[data-event]");
+
+            if (eventButton) {
+                event.stopPropagation();
+                editEvent(eventButton.dataset.event);
+                return;
+            }
+
+            selectedDate = day.dataset.date;
+
+            const date = parseDate(selectedDate);
+
+            if (date.getMonth() !== currentMonth.getMonth() ||
+                date.getFullYear() !== currentMonth.getFullYear()) {
+                currentMonth = new Date(
+                    date.getFullYear(),
+                    date.getMonth(),
+                    1
+                );
+            }
+
+            render();
+            renderSelected();
+        });
+    });
+
+    renderSelected();
+}
+
+function renderSelected() {
+    const date = parseDate(selectedDate);
+
+    const realWeekday = date.toLocaleDateString(undefined, {
+        weekday: "long"
+    });
+
+    const shiftedName = weekdayNames[getShiftedWeekday(date)];
+
+    $("selectedDate").textContent =
+        `${realWeekday} appears as ${shiftedName} · ` +
+        date.toLocaleDateString(undefined, {
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+        });
+
+    const list = events.filter(
+        event => event.date === selectedDate
+    );
+
+    if (!list.length) {
+        $("eventList").innerHTML =
+            `<div class="empty">No events scheduled.</div>`;
+        return;
+    }
+
+    $("eventList").innerHTML = list.map(event => `
+        <div class="event">
+            <strong>${escapeHTML(event.title)}</strong>
+
+            <small>
+                ${event.time
+                    ? escapeHTML(event.time)
+                    : "No time specified"}
+            </small>
+
+            ${event.notes
+                ? `<small>${escapeHTML(event.notes)}</small>`
+                : ""}
+
+            <button data-edit="${escapeHTML(event.id)}">
+                Edit
+            </button>
+        </div>
+    `).join("");
+
+    $("eventList").querySelectorAll("[data-edit]")
+        .forEach(button => {
+            button.addEventListener("click", () => {
+                editEvent(button.dataset.edit);
+            });
+        });
+}
+
+function openModal() {
+    $("modalBackdrop").classList.add("open");
+    $("eventName").focus();
+}
+
+function closeModal() {
+    $("modalBackdrop").classList.remove("open");
+    editingId = null;
+}
+
+function newEvent() {
+    editingId = null;
+
+    $("eventForm").reset();
+    $("modalTitle").textContent = "New event";
+    $("eventDate").value = selectedDate;
+    $("deleteEvent").hidden = true;
+
+    openModal();
+}
+
+function editEvent(id) {
+    const event = events.find(item => item.id === id);
+
+    if (!event) return;
+
+    editingId = id;
+
+    $("modalTitle").textContent = "Edit event";
+    $("eventName").value = event.title;
+    $("eventDate").value = event.date;
+    $("eventTime").value = event.time || "";
+    $("eventNotes").value = event.notes || "";
+    $("deleteEvent").hidden = false;
+
+    openModal();
+}
+
+$("eventForm").addEventListener("submit", event => {
+    event.preventDefault();
+
+    const record = {
+        id: editingId || crypto.randomUUID(),
+        title: $("eventName").value.trim(),
+        date: $("eventDate").value,
+        time: $("eventTime").value,
+        notes: $("eventNotes").value.trim()
+    };
+
+    if (!record.title || !record.date) return;
+
+    if (editingId) {
+        events = events.map(item =>
+            item.id === editingId ? record : item
+        );
+    } else {
+        events.push(record);
+    }
+
+    selectedDate = record.date;
+
+    const date = parseDate(selectedDate);
+
+    currentMonth = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        1
+    );
+
+    saveEvents();
+    closeModal();
+    render();
+});
+
+$("deleteEvent").addEventListener("click", () => {
+    if (!editingId) return;
+
+    events = events.filter(
+        event => event.id !== editingId
+    );
+
+    saveEvents();
+    closeModal();
+    render();
+});
+
+$("addEvent").addEventListener("click", newEvent);
+
+$("cancel").addEventListener("click", closeModal);
+
+$("prevMonth").addEventListener("click", () => {
+    currentMonth.setMonth(currentMonth.getMonth() - 1);
+    render();
+});
+
+$("nextMonth").addEventListener("click", () => {
+    currentMonth.setMonth(currentMonth.getMonth() + 1);
+    render();
+});
+
+$("todayBtn").addEventListener("click", () => {
+    currentMonth = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+    );
+
+    selectedDate = formatDate(today);
+    render();
+});
+
+$("modalBackdrop").addEventListener("click", event => {
+    if (event.target === $("modalBackdrop")) {
+        closeModal();
+    }
+});
+
+render();
+</script>
+
+</body>
+</html>
